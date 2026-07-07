@@ -1,0 +1,12 @@
+# core
+langchain
+langchain-community
+langchain-ollama
+sentence-transformers
+
+# vector database
+chromadb
+
+# other
+pypdf
+streamlit
