@@ -1,6 +1,5 @@
 # core
 langchain
-langchain-community
 langchain-ollama
 sentence-transformers
 

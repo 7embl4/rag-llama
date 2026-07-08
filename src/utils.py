@@ -1,3 +1,4 @@
+import re
 import hashlib
 
 from pathlib import Path
@@ -18,13 +19,28 @@ class PDFLoader:
 
     def load(self) -> list[Document]:
         reader = PdfReader(self.file_path)
-        pages = [
-            Document(
-                page.extract_text(),
-                metadata={"source": self.file_path, "page": page.page_number}
-            ) 
-            for page in reader.pages
-        ]
+        pages = []
+
+        ref_pattern = re.compile(
+            r"^\s*(References|REFERENCES|Bibliography)\s*$", 
+            re.MULTILINE
+        )
+        for page in reader.pages:
+            text = page.extract_text().strip()
+
+            # references removing
+            match = ref_pattern.search(text)
+            if match:
+                text = text[:match.start()]
+
+            if text:
+                pages.append(Document(
+                    page_content=text,
+                    metadata={"source": self.file_path, "page": page.page_number}
+                ))
+            if match:
+                break
+            
         return pages
 
 
@@ -55,7 +71,8 @@ def load_docs(
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        length_function=len
+        length_function=len,
+        separators=["\n\n", "\n", ". ", " ", ""]
     )
     chunks = []
     for doc in docs:
@@ -66,7 +83,7 @@ def load_docs(
     ids = []
     for chunk in chunks:
         source = chunk.metadata.get("source", "")
-        content_hash = hashlib.md5((source + chunk.page_content).encode('utf-8')).hexdigest()
+        content_hash = hashlib.md5((source + chunk.page_content).encode("utf-8")).hexdigest()
         ids.append(content_hash)
 
     # save to db

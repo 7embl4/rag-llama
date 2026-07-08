@@ -41,15 +41,20 @@ def setup_model(
     model = OllamaLLM(model=llm_model)
 
     # prompt
-    system_prompt = (
-        "You are a helpful assistant. Your purpose is to answer user's questions "
-        "based on ONLY the provided context.\n"
-        "If there is no answer for a question in context, say honestly: 'I don't know'. "
-        "Do not imagine the answer.\n\n"
-        "IMPORTANT: You MUST cite the source at the end of the sentence using the format [1], [2], etc., "
-        "corresponding to the 'Document [X]' numbers provided in the context.\n\n"
-        "Context:\n{context}"
-    )
+    system_prompt = """
+        You are a helpful assistant. Your purpose is to answer user's questions 
+        based on ONLY the provided context.\n
+        Carefully analyze the context. If the context contains related information or formulas, 
+        synthesize the answer from those pieces. Do not refuse to answer if the exact word-for-word 
+        definition is missing, but try to construct a meaningful answer from what is provided.\n
+        If the context is absolutely irrelevant to the question, say 'I don't know'.\n\n
+        Do NOT use any citations when saying 'I don't know'.\n\n
+        INSTRUCTIONS FOR CITATIONS:\n
+        When you state a fact from the context, you MUST append the citation number 
+        at the end of the sentence in the format [1], [2], etc., matching the 'Document [X]' numbers. 
+        Do not cite bibliographies or reference lists unless directly asked.\n\n
+        Context:\n{context}
+    """
 
     # template
     prompt = ChatPromptTemplate.from_messages([

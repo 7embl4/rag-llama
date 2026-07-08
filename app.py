@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 
 DATA_DIR = "data"
 COLLECTION_NAME = "files"
-st.title("kinda helper")
+st.title("Articles Helper")
 
 # load and setup
 load_docs(
@@ -32,18 +32,20 @@ for message in st.session_state.messages:
 user_input = st.chat_input()
 if user_input:
     st.chat_message("user").markdown(user_input)
-    st.session_state.messages.append(
-        HumanMessage(content=user_input)
-    )
-
     response, relevant_docs = ask_question(
         user_input, chain, retriever, st.session_state.messages
     )
     st.chat_message("assistant").markdown(response)
+
+    # save in chat history
+    st.session_state.messages.append(
+        HumanMessage(content=user_input)
+    )
     st.session_state.messages.append(
         AIMessage(content=response)
     )
 
+    # citations
     if relevant_docs:
         with st.expander("Sources"):
             for i, doc in enumerate(relevant_docs):
